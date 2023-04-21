@@ -7,7 +7,6 @@ import Screen from "../src/components/Screen";
 import { auth } from "../firebase";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { DatabaseConnection } from "../src/Database/Database";
 const db = DatabaseConnection.getConnection();
@@ -24,7 +23,6 @@ const LoginScreen = ({ navigation, route }) => {
       .then((userCredentials) => {
         const user = userCredentials.user;
         setUserToken(user.uid);
-        console.log("User login with:", user.email);
         navigation.navigate("MainApp", { screen: "HomeScreen" });
       })
       .catch((error) => alert(error.message));

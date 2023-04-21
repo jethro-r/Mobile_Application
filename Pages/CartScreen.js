@@ -6,160 +6,90 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
-import React, { useState } from "react";
+import { firebaseDB } from "../firebase";
+
+import React, { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
+import { collection, query, getDocs } from "firebase/firestore";
+import { DatabaseConnection } from "../src/Database/Database";
 
-const images = [
-  {
-    id: "1",
-    name: "Ice Cream",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqg_OBzcVDnKHv1d3hyVk_WlCo43pzit4CJQ&usqp=CAU",
-  },
-  {
-    id: "2",
-    name: "Biscuits",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT85O96gPiso_j2gaS0cePTBY4mCR3pumV6tw&usqp=CAU",
-  },
-  {
-    id: "3",
-    name: "Chocolate",
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSicQWeRoxxLEr1RLIp8dJtw-NQvSE4xtlhwA&usqp=CAU",
-  },
-];
+const db = DatabaseConnection.getConnection();
 
-const CartScreen = () => {
-  const [cart, setCart] = useState([]);
+const CartScreen = ({ navigation, route }) => {
+  const [allProducts, setProducts] = useState([]);
+  const [cartData, setCartData] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setLoading] = useState(true);
+  const userToken = route.params.userToken;
+
+  useEffect(() => {
+    const getData = async () => {
+      const querySnapshot = await getDocs(
+        query(collection(firebaseDB, "cartItems"))
+      );
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        if (doc.data().userID === userToken) {
+          data.push(doc.data());
+        }
+      });
+
+      setCartData(data);
+    };
+
+    getData().catch(console.error);
+
+    db.transaction(function (tx) {
+      tx.executeSql("SELECT * FROM products", [], (tx, results) => {
+        const temp = [];
+        for (let i = 0; i < results.rows.length; i++) {
+          temp.push(results.rows.item(i));
+        }
+        setProducts(temp);
+        console.log("Fetched Products List");
+        // console.log(allProducts);
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (allProducts.length !== 0 && cartData !== 0) {
+      console.log(cartData);
+      // console.log(allProd)
+      const newCartItems = cartData
+        .map((cartItem) => {
+          const product = allProducts.find(
+            (product) => product.product_id === cartItem.cartItemID
+          );
+          const quantity = cartData.filter(
+            (item) => item.cartItemID === cartItem.cartItemID
+          ).length;
+          return { ...product, quantity };
+        })
+      console.log(newCartItems);
+      setCartItems(newCartItems);
+      setLoading(false);
+    }
+  }, [allProducts, cartData]);
 
   return (
     <ScrollView>
-      <View
-        style={{
-          paddingTop: 25,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: "monospace",
-            fontSize: 30,
-            fontWeight: "900",
-            textAlign: "center",
-            textDecorationLine: "underline",
-          }}
-        >
-          Shopping Cart
-        </Text>
-
-        {images.map((item) => {
-          return (
-            <View
-              style={{
-                marginBottom: 20,
-                flexDirection: "row",
-                justifyContent: "space-between",
-              }}
-            >
-              <Image
-                source={{
-                  uri: item.image,
-                  width: 100,
-                  height: 100,
-                }}
-              />
-
-              <View>
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {item.name}
-                </Text>
-
-                <Picker
-                  style={{
-                    width: "20%",
-                  }}
-                >
-                  <Picker.Item label="1" value="1" />
-                  <Picker.Item label="2" value="2" />
-                </Picker>
-
-                {cart.includes(item) ? (
-                  <Pressable
-                    onPress={() =>
-                      setCart(cart.filter((x) => x.id !== item.id))
-                    }
-                  >
-                    <Text
-                      style={{
-                        color: "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Remove from Cart!
-                    </Text>
-                  </Pressable>
-                ) : (
-                  <Pressable onPress={() => setCart([...cart, item])}>
-                    <Text
-                      style={{
-                        color: "red",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Add To Cart
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-          );
-        })}
-
+      {isLoading ? (
         <View>
-          <View style={{ borderWidth: 3, backgroundColor: "grey" }}></View>
-          <Text
-            style={{
-              fontFamily: "monospace",
-              fontSize: 30,
-              fontWeight: "900",
-              textAlign: "center",
-              textDecorationLine: "underline",
-            }}
-          >
-            Added Cart Items!
-          </Text>
-
-          {cart.map((item) => {
+          <Text>Loading Data</Text>
+        </View>
+      ) : (
+        <View>
+          {cartItems.map((item) => {
             return (
-              <View style={{ marginBottom: 15 }}>
-                <Image
-                  source={{
-                    uri: item.image,
-                    width: 100,
-                    height: 100,
-                  }}
-                />
-
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {item.name}
-                </Text>
+              <View key={item.cartItemID}>
+                <Text>{item.product_name}</Text>
+                <Text>{item.product_info}</Text>
               </View>
             );
           })}
         </View>
-      </View>
+      )}
     </ScrollView>
   );
 };

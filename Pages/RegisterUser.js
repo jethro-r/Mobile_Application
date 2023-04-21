@@ -4,9 +4,8 @@ import React, { useState } from "react";
 import AppButton from "../src/components/AppButton";
 import Screen from "../src/components/Screen";
 import AppTextInput from "../src/components/AppTextInput";
-import { auth, db } from "../firebase";
-import { DatabaseConnection } from "../src/Database/Database";
-import { setDoc, collection, doc } from "firebase/firestore";
+import { auth, firebaseDB } from "../firebase";
+import { setDoc, doc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const RegisterUser = ({ navigation, route }) => {
@@ -26,7 +25,7 @@ const RegisterUser = ({ navigation, route }) => {
           const user = userCredentials.user;
           console.log(user.uid)
           try {
-            const docRef = await setDoc(doc(db, "users", `${user.uid}`), {
+            const docRef = await setDoc(doc(firebaseDB, "users", `${user.uid}`), {
               firstName: firstName,
               lastName: lastName,
               email: emailAddress,

@@ -8,7 +8,7 @@ export const DatabaseConnection = {
 // useEffect(() => {
 //   db.transaction(function (tx) {
 //     tx.executeSql(
-//       "CREATE TABLE IF NOT EXISTS products(product_id INTEGER PRIMARY KEY AUTOINCREMENT, product_name VARCHAR(30), product_price VARCHAR(15), product_info VARCHAR(200), product_image VARCHAR(200))",
+//       "CREATE TABLE IF NOT EXISTS products(productID INTEGER PRIMARY KEY AUTOINCREMENT, productName VARCHAR(30), productPrice VARCHAR(15), productInfo VARCHAR(200), productImage VARCHAR(200))",
 //       [],
 //       (tx, results) => {
 //         // enterProducts.forEach((product) => dbAddProducts(product.productName, product.price, product.description, product.pictureURL))
@@ -26,3 +26,5 @@ export const DatabaseConnection = {
 //     setFlatListItems(temp);
 //     console.log(results);
 //   });
+
+
